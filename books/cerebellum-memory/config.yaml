@@ -1,0 +1,8 @@
+title: "小脳記憶シリーズ - 作りながら読めるようになる"
+summary: "「読めれば作れる時代」にアプリ開発でつまづいた箇所を一つずつ体系的に理解していく記録。HTMLとJavaScriptからReactまで、看護師視点で言語化した技術理解の記録。"
+topics: ["react", "javascript", "html", "初心者", "フロントエンド"]
+published: true
+price: 0
+chapters:
+  - 1
+  - 2

@@ -1,0 +1,10 @@
+title: "ねぃろ開発日記 - 訪問看護師のアプリ開発記録"
+summary: "訪問看護師がゼロからReactで音楽創造アプリ「ねぃろ」を開発する過程を記録。APIの失敗、環境構築、Git、音楽生成AIの選定まで、全ての試行錯誤をそのまま公開。"
+topics: ["react", "個人開発", "音楽生成ai", "claudecode", "api"]
+published: true
+price: 0
+chapters:
+  - 1
+  - 2
+  - 3
+  - 4
