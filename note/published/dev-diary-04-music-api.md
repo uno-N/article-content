@@ -1,5 +1,5 @@
 ---
-title: "【開発日記：#4】音楽創造アプリに組み込む音楽生成AIの選定とAPI検証"
+title: "【開発日記：#4】AIに3回裏切られた話——それでもGoogle Lyria RealTimeを選んだ理由"
 emoji: "🎶"
 type: "tech"
 topics: ["python", "api", "音楽生成ai", "個人開発", "claudecode"]
