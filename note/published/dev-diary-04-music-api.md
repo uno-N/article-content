@@ -1,10 +1,3 @@
----
-title: "【開発日記：#4】AIに3回裏切られた話——それでもGoogle Lyria RealTimeを選んだ理由"
-emoji: "🎶"
-type: "tech"
-topics: ["python", "api", "音楽生成ai", "個人開発", "claudecode"]
-published: false
----
 
 みなさんこんにちは。
 平凡な訪問看護師が、アプリ開発の実装過程を掲載していく、「アプリ開発日記Vol.4」です。

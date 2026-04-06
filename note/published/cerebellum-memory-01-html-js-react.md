@@ -1,10 +1,3 @@
----
-title: "【小脳記憶 ser.1】React環境構築を読めるようにする - HTMLとJavaScriptから -"
-emoji: "🧠"
-type: "tech"
-topics: ["react", "javascript", "html", "初心者", "フロントエンド"]
-published: false
----
 
 みなさんこんにちは。
 平凡な訪問看護師が、アプリ開発の実装過程で読めなかったところを読めるまでやる「小脳記憶シリーズ」です。

@@ -168,6 +168,16 @@
 
 ---
 
+## 📋 ファイル管理ルール
+
+### note記事のmdファイルについて
+- **ZennのfrontmatterはNoteファイルに不要**。`title` / `emoji` / `type` / `topics` / `published` のfrontmatterブロックは削除する
+- noteには独自のfrontmatterフォーマット（`platform: note` / `published_date` / `tags`）を使うか、frontmatterなしでよい
+- **note.comでは見出し・画像・コードブロックなどのフォーマットはJSON形式で管理される**。mdファイルにはMarkdown本文のみ保持し、note.com上での装飾（見出しレベル・画像挿入位置など）はnote.com側で後から設定される
+- Zenn版とnote版は**タイトルが異なる場合がある**（Zenn版は技術寄り・note版は読者に刺さるタイトル）。どちらが正とは決めず両方保持する
+
+---
+
 ## 💡 Tips
 
 ### 筆が進まないとき

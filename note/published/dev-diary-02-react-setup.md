@@ -1,10 +1,4 @@
----
-title: "【開発日記：#2】React環境構築の全記録"
-emoji: "⚛️"
-type: "tech"
-topics: ["react", "nodejs", "npm", "環境構築", "個人開発"]
-published: false
----
+
 
 みなさんこんにちは。
 平凡な訪問看護師が、アプリ開発の実装過程を掲載していく、「アプリ開発日記Vol.2」です。
@@ -278,8 +272,9 @@ import logo from './logo.svg'; // ← これを削除
 
 - ✅ 開発環境の構成 - Node.js、npm、Reactの役割と関係性
 - ✅ ローカル開発の始め方 - インストールからプロジェクト作成まで
-- ✅ 基本的なターミナル操作 - cd、node -v、npm start等のコマンド
+- ✅ 基本的なターミナル操作 - cd、node -v、npm run dev等のコマンド
 - ✅ Reactプロジェクトの構造 - src/App.jsを編集して画面を作る
+- ✅ CRAは2025年2月に非推奨 → 新規プロジェクトはViteを使う
 
 **暗記してサッと使いたいコマンド：**
 
@@ -287,8 +282,8 @@ import logo from './logo.svg'; // ← これを削除
 node -v          # Node.jsのバージョン確認
 npm -v           # npmのバージョン確認
 cd フォルダ名    # ディレクトリ移動
-npx create-react-app プロジェクト名  # Reactアプリ作成
-npm start        # 開発サーバー起動
+npm create vite@latest プロジェクト名 -- --template react  # Reactアプリ作成（Vite推奨）
+npm run dev      # 開発サーバー起動
 ```
 
 ### 3-2. つまずきポイントと解決法
@@ -299,7 +294,33 @@ npm start        # 開発サーバー起動
 **警告（Warning）：**
 使っていないimportは削除する。エラーではないが、コードをクリーンに保つために対応。
 
-### 3-3. 次回の挑戦は、、？
+### 3-3. 【追記】Create React Appは非推奨になりました（2025年2月）
+
+https://ja.react.dev/blog/2025/02/14/sunsetting-create-react-app
+
+この記事を書いた当時は `create-react-app` を使用しましたが、2025年2月にReact公式チームが**非推奨（サポート終了）**を発表しました。
+
+**公式が推奨する代替ツール：**
+
+| ツール | 特徴 | おすすめ度 |
+|-------|------|-----------|
+| **Vite** | 起動が爆速、設定が最小限 | ★★★ 手っ取り早い |
+| Next.js | SSR/SSG対応、フルスタック | ★★☆ 本格的なWeb開発向け |
+| Remix | サーバーサイド重視 | ★☆☆ 上級者向け |
+
+**Viteで始める場合のコマンド（create-react-appの代わり）：**
+
+```bash
+npm create vite@latest my-app -- --template react
+cd my-app
+npm install
+npm run dev
+```
+
+`create-react-app` と比べて起動が10倍以上速く、今から始めるならViteがおすすめです。
+ねぃろ開発でも#5でViteへ移行しました。
+
+### 3-4. 次回の挑戦は、、？
 
 作成したコードをGitで管理してGitHubに保存してみようと思います。これにより：
 

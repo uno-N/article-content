@@ -178,6 +178,16 @@ https://studio-api.prod.suno.com / api / generate / v2-web/
     "can_control_sliders": ["weirdness_constraint", "style_weight"]
   },
   "override_fields": [],
+  "cover_clip_id": null,
+  "cover_start_s": null,
+  "cover_end_s": null,
+  "persona_id": null,
+  "artist_clip_id": null,
+  "artist_start_s": null,
+  "artist_end_s": null,
+  "continue_clip_id": null,
+  "continued_aligned_prompt": null,
+  "continue_at": null,
   "transaction_uuid": "**********"
 }
 ```

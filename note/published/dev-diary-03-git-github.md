@@ -78,8 +78,8 @@ published: false
 
 ### 2-1. 開発日記#2で終わっていること
 
-- ✅ React環境構築済み（create-react-appで作成）
-- ✅ 開発サーバー起動済み（npm start実行済み）
+- ✅ React環境構築済み（Viteで作成）
+- ✅ 開発サーバー起動済み（npm run dev実行済み）
 - ✅ GitHubアカウント取得済み
 
 GitHubアカウントがない方は以下の記事を参考に作成をお願いします。

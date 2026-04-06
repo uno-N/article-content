@@ -1,10 +1,3 @@
----
-title: "【開発日記：#1】利用規約を読まずにAPI検証した話"
-emoji: "🎵"
-type: "tech"
-topics: ["claude", "sunoai", "api", "python", "個人開発"]
-published: false
----
 
 みなさんこんにちは。
 平凡な訪問看護師が、アプリ開発の実装過程を掲載していく、「アプリ開発日記Vol.1」です。
@@ -178,6 +171,16 @@ https://studio-api.prod.suno.com / api / generate / v2-web/
     "can_control_sliders": ["weirdness_constraint", "style_weight"]
   },
   "override_fields": [],
+  "cover_clip_id": null,
+  "cover_start_s": null,
+  "cover_end_s": null,
+  "persona_id": null,
+  "artist_clip_id": null,
+  "artist_start_s": null,
+  "artist_end_s": null,
+  "continue_clip_id": null,
+  "continued_aligned_prompt": null,
+  "continue_at": null,
   "transaction_uuid": "**********"
 }
 ```
