@@ -1,255 +1,145 @@
 ---
-title: '【開発日記：#2】React環境構築の全記録 -ド入門編- '
+title: 【React環境構築 完全版】Node.js・Viteのセットアップ + HTML/JS基礎の仕組みまで——非エンジニアが0から始めた全記録
 tags:
   - Node.js
   - 環境構築
-  - npm
+  - 初心者
   - React
-  - 個人開発
+  - vite
 private: false
-updated_at: '2026-04-09T23:30:57+09:00'
+updated_at: '2026-04-09T23:57:55+09:00'
 id: ab54be932236b1a1e7d4
 organization_url_name: null
 slide: false
 ignorePublish: false
 ---
 
-みなさんこんにちは。
-平凡な訪問看護師が、アプリ開発の実装過程を掲載していく、「アプリ開発日記Vol.2」です。
-失敗や成功を繰り返していく過程をお楽しみください。
+## はじめに
 
-学習内容と実際に起きたことを記録しています。
-自分がわかるように記載しているため、わかりずらい所もあるかと思いますがご了承ください。
+この記事でできること：
 
-前回の記事でMureka AIでAPI検証！をお届け！とお伝えしましたが、API検証が終わってなくても、Reactでアプリ画面を作ることは変わらないとのことで、先に環境構築を行なっています。
+- Node.js・npm・Reactをローカル環境にセットアップできる
+- HTML/JavaScript/Reactの役割の違いが理解できる
+- 「なぜそのコマンドを打つのか」がわかる
 
-実装のみ参考にしたい場合は、**2. 環境構築してみた** までお進みください。
+対象：プログラミングをほぼやったことがない、でも作りたいものがある人。
+
+---
+
+## 環境・前提条件
+
+- Mac（Windowsの場合はパス表記などが一部異なります）
+- VS Codeインストール済み
+- ターミナルを開いたことがある程度でOK
 
 ---
 
 ## 0. 環境構築の基礎知識
 
-### 0-1. そもそも「環境構築」とは何か？
+### 0-1. 「環境構築」とは何か
 
-人間が理解しやすいように書いた言語を機械が動きやすいように変換して、目的通り動かすためのシステム整備。
-これから書くコードを動かすエンジン・システムを置く作業。
+人間が書いたコードを機械が動かせる形に変換して動かすためのシステム整備。
+コードを動かすエンジン・システムを置く作業です。
 
-必要な道具：これらをインストールして置いていく。
+必要なもの：
 
 ```
 VSCode（エディタ・コードスペース）
 Node.js（実行環境）
 npm（Node Package Manager）
-React（Javascriptコードの集まり）
+React（JavaScriptコードの集まり）
 ```
 
-### 0-2. 各ツールについて
+### 0-2. 各ツールの役割
 
-#### 0-2-1. VSCode（エディタ・コードスペース）
+**Node.js（実行環境）**
 
-**役割：**
-- コードを書く場所
-- 操作パネル
-
-#### 0-2-2. Node.js（実行環境）
-
-JavaScriptを実行するためのエンジンの集まり。動かすためのシステム全体。
-
-**役割（Node.jsが動かしているもの）：**
-- V8エンジンによるJavaScriptコードの実行
-- libuv等によるファイル操作、ネットワーク通信
-- ビルドツール（Webpack等）によるReactコードの変換
-
-> **ビルド**とは、開発者が書いたコードを、実際に動く形に変換する作業。
+JavaScriptを実行するためのエンジンの集まり。
 
 ```
-Node.js（JavaScriptランタイム）          ※フォルダ構造ではありません
+Node.js
  ├── V8エンジン（JavaScriptを実行する心臓部）← Chromeと同じ
  ├── libuv（ファイル操作、ネットワーク通信）
  └── Webpack（Reactコード変換）
-npm（Node Package Manager）
+npm（Node.jsに付いてくる）
  └── react
 ```
 
-**npm（Node Package Manager）：Node.jsに付いてくる**
+> **ビルド**とは、開発者が書いたコードを実際に動く形に変換する作業。
 
-パッケージ管理ツール。ライブラリのダウンロード・管理ができる。
-Reactもここからインストールして使う。
+**npm（Node Package Manager）**
 
-#### 0-2-3. React（コード）
+パッケージ管理ツール。ライブラリのダウンロード・管理ができる。ReactもここからインストールするNodejsに付いてくる。
 
-JavaScriptのライブラリ（コードの集まり）
+**React（コード）**
 
-**役割：**
-Webページに動きをつける、Node.js環境下だとPC上で開発作業ができる。
-
-**ざっくりとした環境構築の流れ：**
+JavaScriptのライブラリ（コードの集まり）。Webページに動きをつける。
 
 ```
+環境構築の流れ：
+
 1. Node.jsをインストール
-   ↓
 2. npmも一緒についてくる
-   ↓
 3. npmでReactをインストール
-   ↓
-4. npmでビルドツール（Webpack等）もインストール
-   ↓
-5. ターミナルで npm start を実行
-   ↓
-6. Node.jsが起動して、ビルドツールを動かす
-   ↓
-7. Reactのコードがブラウザ用に変換される
-   ↓
-8. 開発サーバーが立ち上がる
+4. ターミナルで npm run dev を実行
+5. Node.jsが起動→Reactのコードがブラウザ用に変換される
+6. 開発サーバーが立ち上がる
 ```
 
 ---
 
-## 1. 環境構築の実装の前に
+## 1. セットアップ手順
 
-### 1-1. なぜReactなのか？
+### 1-1. Node.jsをダウンロードする
 
-UI画面を作るためにReactを使用するかどうか、Claudeに比較表を作ってもらいました。
-このまま一緒に環境構築実装までやってみるかどうかの参考にしていただければと思います。
+1. [nodejs.org/ja/download](https://nodejs.org/ja/download) を開く
+2. インストーラーをダウンロード
+3. ダブルクリックして「続ける」→「インストール」
 
-| ライブラリ | 学習コスト | 情報量 | 向いているケース |
-|-----------|-----------|--------|----------------|
-| React | 中 | 非常に多い | SPA、大規模、採用多数 |
-| Vue.js | 低 | 多い | 初心者向け、日本語情報あり |
-| Svelte | 低 | 少ない | 軽量重視 |
-| Angular | 高 | 多い | 大規模エンタープライズ |
+### 1-2. VS Codeをインストールする
 
----
+[code.visualstudio.com/download](https://code.visualstudio.com/download) から自分のPCに合ったものをダウンロード。
 
-## 2. 環境構築をしてみた
+### 1-3. Node.jsとnpmの確認
 
-今回は、ブラウザ環境ではなくローカル環境で作業する想定で、環境構築を行います。
-
-ブラウザ環境は、GitHub Codespacesなどのwebページ上で作業できるコードスペースを使用するのですが、時間制限があったり長く使用するには不向きです。
-課題提出ギリギリで制限がきてコードスペースが動かなくなり絶望した日を覚えています、、。
-
-### 2-1. Node.jsをダウンロードする
-
-**2-1-1.** 以下のURLを開く。
-
-https://nodejs.org/ja/download
-
-**2-1-2.** インストーラーをクリック。ダウンロードを待つ。
-
-**2-1-3. インストール手順**
-
-ダウンロードが完了したら：
-
-1. 自動的に「ダウンロード」フォルダに保存されます
-2. そのファイルをダブルクリック（`node-v24.12.0.pkg` というファイル）
-3. インストーラーが起動します
-4. インストーラーの指示に従う：「続ける」→「続ける」→「インストール」
-5. パスワードを求められたら、Macのログインパスワードを入力
-6. インストール完了後、`.pkg` ファイルは削除してもOK（もう必要ありません）
-
-### 2-2. VSCodeをインストールする
-
-**2-2-1.** 以下URLを開き、自分のPCに合ったverをクリック。
-
-https://code.visualstudio.com/download
-
-インストール手順はNode.jsとほとんど同じ。
-
-### 2-3. Node.jsの確認
-
-**2-3-1. VSCodeを開き、ターミナルを開く**
-
-VSCodeを開くとチュートリアルなど書いてある画面が開かれます。
-画面の右上のターミナルアイコンをクリック。
-
-**2-3-2. Node.jsとnpmがインストールされているか確認**
-
-以下のコマンドを1行ずつコピーしてターミナルに貼り付け、エンターを押す。
-（`-v` はversionのv）
+VS Codeのターミナルを開いて：
 
 ```bash
 node -v
 npm -v
 ```
 
-両方ともバージョンが表示されればOK。
+両方バージョンが表示されればOK。
 
-### 2-4. プロジェクト作成
+### 1-4. Reactプロジェクト作成（Vite）
 
-**2-4-1. 作業フォルダに移動**
-
-デスクトップにプロジェクトを作る場合：
+:::note warn
+**2025年2月以降：Create React Appは非推奨**
+[React公式ブログ](https://ja.react.dev/blog/2025/02/14/sunsetting-create-react-app) より。現在は **Vite** が推奨です。
+:::
 
 ```bash
 cd ~/Desktop
+npm create vite@latest my-app -- --template react
+cd my-app
+npm install
+npm run dev
 ```
 
-> `cd` は Change Directory（ディレクトリを変更する）の意。移動するときに使う。
+`create-react-app` と比べて起動が10倍以上速い。
 
-`Desktop` まで含まれて表示されていればOK。Desktopの階層を操作できるようになります。
+### 1-5. 動作確認
 
-**2-4-2. Create React App を実行**
+ブラウザが自動で開いてViteのロゴが出れば成功。
 
-```bash
-npx create-react-app my-first-react-app
-```
-
-> `npx` = Node Package eXecute（実行する）。一発でReactアプリが作成できる。
-
-これで新しくReactプロジェクトが作成されます。数分かかります。
-
-**2-4-3. 完了したと思いきや**
-
-新幹線の中で作業をしていて。ターミナルのくるくるがとまり、作れたかも！と思ってみてみると、、ネットワークエラー表示に、、
-キャッシュリセットをしてもう一回やり直しへ。
-
-安定したネットワーク環境での作業が重要と学んだ瞬間でした。
-
-できた！ `Happy hacking!` の文字が出れば成功です。
-
-### 2-5. アプリを起動してみよう
-
-**2-5-1. 作成したプロジェクトへ移動**
-
-```bash
-cd my-first-react-app
-```
-
-**2-5-2. 開発用サーバー起動**
-
-```bash
-npm start
-```
-
-今いるプロジェクトを使用して開発サーバーを起動させることができる。
-
-できた〜！！くるくる回るロゴが可愛い。
-
-ターミナルに `Compiled successfully!` と表示され、Webブラウザが自動で起動します。
-
-### 2-6. 動作確認：任意の文字を表示してみる
-
-**2-6-1. App.js ファイルを開く**
-
-VS Codeの左側のエクスプローラーから：
-1. 「開く」をクリック
-2. `my-first-react-app` をクリック
-3. `/src/App.js` をクリック
-
-**2-6-2. コードを編集**
-
-App.js 内のコードを以下のコードと交換します。
-Command+S を入力するか、ファイルから保存を実施。
+`src/App.jsx` を開いて内容を書き換えてみましょう：
 
 ```jsx
 function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <h1>Hello Yuno!</h1>
-        <p>初めてのReactアプリが動いた！</p>
-        <p>これから音楽療法アプリを作るぞ</p>
-      </header>
+    <div>
+      <h1>Hello!</h1>
+      <p>初めてのReactアプリが動いた！</p>
     </div>
   );
 }
@@ -257,92 +147,212 @@ function App() {
 export default App;
 ```
 
-**2-6-3. 表示内容が変更された！**
-
-このようにコードを変更して、自分の表示したいものを作っていくのか。
-なるほど。なるほど。
-
-### 2-7. またもやできたと思いきや
-
-Web上はページが表示されています。
-App.js をみてみると、warning の表示が、、。
-
-function以下同じ所に入れられたはずですが、何やら「logo が使われてない」的なことが書いてあります。
-
-先ほどはlogo画像を表示していましたが、今回はテキスト表示のみ。
-`logo.svg` を `logo` で変数化して使用する必要がないため、警告が出ていたようです。
-
-```jsx
-import logo from './logo.svg'; // ← これを削除
-```
-
-この行を削除して保存すると `Compiled successfully!` がターミナルに表示されました。
+保存（Cmd+S）すると画面が即座に更新されます。
 
 ---
 
-## 3. まとめ
+## 2. エラー・つまずきポイント
 
-### 3-1. 今回の学び
+### ネットワークエラー（インストール中）
 
-- ✅ 開発環境の構成 - Node.js、npm、Reactの役割と関係性
-- ✅ ローカル開発の始め方 - インストールからプロジェクト作成まで
-- ✅ 基本的なターミナル操作 - cd、node -v、npm start等のコマンド
-- ✅ Reactプロジェクトの構造 - src/App.jsを編集して画面を作る
+新幹線の中でやって失敗しました。安定したWi-Fi環境で作業してください。
 
-**暗記してサッと使いたいコマンド：**
+対処：
 
 ```bash
-node -v          # Node.jsのバージョン確認
-npm -v           # npmのバージョン確認
-cd フォルダ名    # ディレクトリ移動
-npx create-react-app プロジェクト名  # Reactアプリ作成
-npm start        # 開発サーバー起動
-```
-
-### 3-2. つまずきポイントと解決法
-
-**ネットワークエラー：**
-安定したネットワーク環境で作業することが重要。新幹線では厳しかった...
-
-**警告（Warning）：**
-使っていないimportは削除する。エラーではないが、コードをクリーンに保つために対応。
-
-### 3-3. 【追記】Create React Appは非推奨になりました（2025年2月）
-
-https://ja.react.dev/blog/2025/02/14/sunsetting-create-react-app
-
-この記事を書いた当時は `create-react-app` を使用しましたが、2025年2月にReact公式チームが**非推奨（サポート終了）**を発表しました。
-
-**公式が推奨する代替ツール：**
-
-| ツール | 特徴 | おすすめ度 |
-|-------|------|-----------|
-| **Vite** | 起動が爆速、設定が最小限 | ★★★ 手っ取り早い |
-| Next.js | SSR/SSG対応、フルスタック | ★★☆ 本格的なWeb開発向け |
-| Remix | サーバーサイド重視 | ★☆☆ 上級者向け |
-
-**Viteで始める場合のコマンド（create-react-appの代わり）：**
-
-```bash
+npm cache clean --force
 npm create vite@latest my-app -- --template react
-cd my-app
-npm install
-npm run dev
 ```
 
-`create-react-app` と比べて起動が10倍以上速く、今から始めるならViteがおすすめです。
-ねぃろ開発でも今後Viteへの移行を検討しています。
+### 使っていないimportの警告
 
-### 3-4. 次回の挑戦は、、？
+```
+WARNING: 'logo' is defined but never used
+```
 
-作成したコードをGitで管理してGitHubに保存してみようと思います。これにより：
+使っていない `import` 文を削除するだけで解決します。
 
-- コードの変更履歴が残せる
-- 間違えても前の状態に戻せる
-- 他の人と共同開発できる
+---
 
-環境構築という最初の一歩目が踏み出せた。
-果たして、ミュージックレジリエンスツールはうまく実装できるのか！
+## 3. なぜそう動くのか：HTML/JS/Reactの仕組み
 
-次回、Git・GitHubでソース管理！をお送りします（予定）
-（その次に、API検証の続きをお届けします！）
+セットアップが終わったところで、「なぜそのコードが動くのか」を理解しておくと、エラーを自分で解決できるようになります。
+
+### 3-1. HTMLの骨組み
+
+```html
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>タブに表示されるタイトル</title>
+</head>
+<body>
+    <h1>画面に表示される内容</h1>
+    <p>段落</p>
+</body>
+</html>
+```
+
+```
+HTMLの骨組み
+├── <!DOCTYPE html>（宣言）
+└── <html>（全体の箱）
+    ├── <head>（ページ設定。画面には表示されない）
+    │   ├── <meta charset="UTF-8">（文字化け防止）
+    │   └── <title>（タブに表示）
+    └── <body>（実際に表示される内容）
+        ├── <h1>（大見出し）
+        └── <p>（段落）
+```
+
+### 3-2. ブラウザの中身
+
+```
+ブラウザ
+├── レンダリングエンジン（HTML/CSSを画面に表示）
+│   ├── HTMLパーサー → DOMツリー作成
+│   ├── CSSパーサー → CSSOMツリー作成
+│   └── レイアウト → ペイント → 表示
+└── JavaScriptエンジン（V8など）
+```
+
+HTMLを読み込むとDOMツリー（木構造のデータ）に変換されます。
+
+```
+DOMツリー
+document
+  └── html
+      └── body
+          ├── h1 "見出し"
+          ├── p (id="message") "テキスト"
+          └── button (id="btn") "クリック"
+```
+
+### 3-3. JavaScriptで動きをつける（バニラJS）
+
+```javascript
+// 1. ボタン要素をDOMツリーから取得
+const button = document.querySelector('#btn');
+
+// 2. クリックされたら実行する処理を登録
+button.addEventListener('click', () => {
+    const message = document.querySelector('#message');
+    message.innerText = '変わった！';
+});
+```
+
+### 3-4. ReactがJavaScriptを自動化している
+
+**バニラJS（4ステップ必要）：**
+
+```javascript
+const button = document.querySelector('#btn');       // 1. 要素を探す
+button.addEventListener('click', () => {              // 2. イベント登録
+    const message = document.querySelector('#message'); // 3. 要素を探す
+    message.innerText = '変わった！';                 // 4. 書き換える
+});
+```
+
+**React（1ステップで同じことができる）：**
+
+```javascript
+const [message, setMessage] = useState('初期値');
+
+const handleClick = () => {
+    setMessage('変わった！');  // 値を変えるだけ→画面が自動更新
+};
+```
+
+Reactの考え方：**「データを更新すれば画面は勝手についてくる」**
+
+---
+
+## 4. Reactのコアを理解する
+
+### 4-1. importとexport
+
+```javascript
+import { useState } from 'react';  // reactから useState を持ってくる
+import './App.css';                  // CSSを読み込む
+
+export const App = () => {};         // このファイルの内容を外から使えるようにする
+```
+
+### 4-2. useState（状態管理）
+
+```javascript
+const [message, setMessage] = useState('まだクリックされていません');
+//     ↑現在の値   ↑更新用関数                    ↑初期値
+```
+
+- `message`：現在の値を入れた箱
+- `setMessage`：値を変更するための関数
+- 値が変わると自動で画面が更新される
+
+### 4-3. 配列のstate更新（重要）
+
+Reactは「別物の配列に変わった」ことで変化を検知します。
+
+```javascript
+// ❌ NG：同じ配列をそのまま渡している
+message.push(newItem);
+setMessage(message);
+
+// ✅ OK：スプレッド構文で必ず新しい配列を作ってから渡す
+const newArray = [...message, newItem];
+setMessage(newArray);
+```
+
+### 4-4. JSX（ReactのHTML記法）
+
+```jsx
+return (
+    <div className="App">        {/* classではなくclassName */}
+        <p>{message}</p>         {/* {}でJS変数を表示 */}
+        <button onClick={handleClick}>クリック！</button>  {/* onClickで関数を渡す */}
+    </div>
+);
+```
+
+---
+
+## 5. まとめ
+
+### 暗記してサッと使いたいコマンド
+
+```bash
+node -v                                            # Node.jsバージョン確認
+npm -v                                             # npmバージョン確認
+npm create vite@latest my-app -- --template react  # Reactアプリ作成（Vite）
+cd my-app && npm install && npm run dev            # インストール→起動
+```
+
+### 暗記してサッと使いたいReactコード
+
+```javascript
+// 状態管理
+const [state, setState] = useState(初期値);
+setState(新しい値);
+
+// 配列のstate更新（必ず新しい配列を作る）
+const newArray = [...oldArray, 新要素];
+setState(newArray);
+
+// JSX
+<p>{変数名}</p>
+<button onClick={関数}>ボタン</button>
+
+// バニラJS：DOM操作
+document.querySelector('#id名');
+element.addEventListener('click', () => {});
+element.innerText = '新しいテキスト';
+```
+
+---
+
+## 参考
+
+- [React公式ドキュメント](https://ja.react.dev/)
+- [Vite公式ドキュメント](https://ja.vitejs.dev/)
+- [Node.js公式](https://nodejs.org/ja/)

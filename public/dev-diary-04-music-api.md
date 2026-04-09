@@ -1,328 +1,370 @@
 ---
-title: 【開発日記：#4】音楽創造アプリに組み込む音楽生成AIの選定とAPI検証の意思決定プロセス
+title: 【音楽生成AI API比較】Mureka vs Google Lyria RealTime——音響パラメータをコードで制御できるか検証した
 tags:
   - Python
   - API
+  - websocket
   - 個人開発
-  - ClaudeCode
   - 音楽生成AI
 private: false
-updated_at: '2026-04-09T23:30:57+09:00'
+updated_at: '2026-04-09T23:57:55+09:00'
 id: 68072acf647f3355c862
 organization_url_name: null
 slide: false
 ignorePublish: false
 ---
 
-みなさんこんにちは。
-平凡な訪問看護師が、アプリ開発の実装過程を掲載していく、「アプリ開発日記Vol.4」です。
-失敗や成功を繰り返していく過程をお楽しみください。
+## はじめに
+
+この記事でできること：
+
+- 音楽生成AIのAPIで音響パラメータ（BPM・キー・密度）を数値で制御する方法がわかる
+- Mureka AIとGoogle Lyria RealTimeの違いがわかる
+- Python + google-genai でLyria RealTime APIに接続できる
+
+対象：音楽生成AIのAPIを使いたい人、Pythonで外部APIを叩いたことがある程度の人。
 
 ---
 
-## 0. やっとClaude Code連携した
+## 環境・前提条件
 
-以前までのやりとりはClaudeブラウザ版でチャットで確認し、コード修正を行い、コピペしてVSCode修正を行なっていました。
-Claude CodeをVSCodeと連携すると、テキストのやりとりだけで、ファイル内のコード・テキストを修正することができます。
-
-また、修正する際には「yes / no / テキスト入力」の形式で選択でき、修正してほしくないものまで修正してしまうことを防げます。
-
-複数のClaude Codeと書かれた拡張機能があるが、Anthropic社が出しているものをインストール。VS Code拡張版のClaude Codeはかなり使いやすい。確実にブラウザ版より良い。
+- Python 3.10以上
+- Google AI StudioのAPIキー（[aistudio.google.com](https://aistudio.google.com) で取得）
+- `pip install google-genai python-dotenv librosa`
 
 ---
 
-## 1. Mureka APIで検証！するぞ
+## 0. なぜ音響パラメータの制御が必要か
 
-### 1-1. 料金設定に躓く
+音楽療法アプリ「ねぃろ」のコアは、利用者の状態から導かれた音響パラメータ（BPM・キー・ラウドネス等）を音楽に正確に反映させることです。
 
-と思いきや、検証するだけなのに料金体系が高すぎる！！
+最初に試したのはSunoAI → 公式APIなし・利用規約違反の可能性があり断念。
 
-約15万円のプランに登録すると12ヶ月クレジットが残るし機能がたくさん使えてお得ですよ。ただ登録しなくても使用できて$30からチャージして使えますよ。ということだと思う、多分。
-
-プラン登録高い、、クレジット使用めっちゃ怖い、、。
-APIは無料体験の期間もないようでした（間違えていたら有識者の方教えてくださいませ）。
-
-Claude Proが4,000円弱で毎月使えているからそれくらいだろうといった感覚で考えていた、、、。
+次にMureka AI → 結果は後述。
 
 ---
 
-## 2. MurekaAIのWeb版で音響パラメータ反映ができるか
+## 1. REST vs WebSocket：2種類の通信方式
 
-料金の話はさておいて、まずはMurekaAIで音響パラメータの制御ができるのか確認してみよう。
+APIを選ぶ前に、通信方式の違いを理解しておくと判断しやすくなります。
 
-希望通りの制御された音楽が生成できなければ、意図した効果のアプリを作ることができません。
-API経由ではなく、MurekaAIにログインし、直接、テスト利用者の情報を元に出力された音響パラメータをプロンプト入力してみた。
-
-### 2-0. MurekaAIで音楽生成する際のプロンプト設定
-
-まずは、必要な音響パラメータを出力します。
-利用者さんの状態に応じて、同調する値で出力されます。
+**REST（リクエスト→レスポンスで完結）**
 
 ```
-関連音響パラメータ:
-- 🎵 テンポ: BPM
-- 🎹 キー:
-- 🔊 ラウドネス: dB
-  - ダイナミックレンジ: dB
-- 📊 平均周波数: Hz
-- 🥁 リズム複雑さ (CV%): %
-- 🥁 リズム規則性:
-- 🌊 1/fゆらぎ: （特定のα指数以上で有無）
-- ジャンル:
+アプリ：「70BPMの曲を作って」（POSTリクエスト）
+  ↓ 待つ
+API ：「できました」（レスポンス）← ここで通信終了
 ```
 
-次に、MurekaAIのプロンプト入力は数値や専門的な音響パラメータ名のラベル登録がされていない様子で、自然言語描写の方が音楽生成に意図を反映させやすいそうです。
+MurekaはREST。一回のリクエストで完結します。
+
+**WebSocket（接続を保ちながらデータが流れ続ける）**
+
+- **双方向** — 接続後、リクエストなしにサーバー側から送ってこれる
+- **繋ぎっぱなし** — リクエストのたびに繋ぎ直さない
+- **リアルタイム** — 音楽・チャット・株価など「流れ続けるデータ」に向いている
 
 ```
-❌ 反映されにくい（数値ラベル形式）
+アプリ：「繋いで。70BPMの曲を流し続けて」
+  ↕ 繋ぎっぱなし
+API ：「♪」← 2秒ごとに届く
+API ：「♪」
+API ：「♪」
+```
+
+Lyria RealTimeはWebSocket。接続を維持しながら音楽データが2秒チャンク単位で届き続けます。
+
+---
+
+## 2. Mureka AIで検証：失敗
+
+### 2-1. 音響パラメータを自然言語で渡す
+
+MurekaのAPIは自然言語プロンプトのみ対応。数値ラベルのパラメータがありません。
+
+```
+# ❌ 反映されにくい（数値ラベル形式）
 BPM: 90
 Key: A minor
-Loudness: -14dB
 
-✅ 反映されやすい（自然言語描写形式）
+# ✅ 反映されやすい（自然言語描写形式）
 relaxed 90 BPM groove, melancholic A minor,
 soft and intimate with gentle dynamics
 ```
 
-### 2-1. MurekaAIで音楽生成
+### 2-2. 検証結果
 
-生成したプロンプトはこんな感じ。
+librosaで音響分析ツールを作り、9パターンで検証。
 
-```
-"New age healing piece in A minor, 40 BPM. Soft spiritual synthesizers with gentle nature sounds —
-water, distant birds. Almost no rhythm — free-flowing, ambient, barely a pulse. Deep, warm lower
-harmonies with melancholic calm. Very quiet volume, as if heard from far away. Highly consonant
-and soothing — no tension. Focus on low-mid frequency depth (50-400Hz); high frequencies nearly
-absent. Strong natural 1/f fluctuation (alpha ≈ 1.2) — organic, unhurried. The piece should feel
-like deep rest and meditation. Keywords: new age, healing, ambient, meditative, low-frequency, quiet, calm"
-```
+| ID | テンポ | キー | ラウドネス |
+|----|--------|------|-----------|
+| 1 | 99.4 BPM ❌ | C major ❌ | -18.8 dB ❌ |
+| 2 | 136.0 BPM ❌ | D major ❌ | -18.7 dB ❌ |
+| 4 | 89.1 BPM ✅ | G major ❌ | -18.8 dB |
 
-> 「Aマイナー調のニューエイジ・ヒーリング曲、40BPM。柔らかいスピリチュアルなシンセサイザーに、水の音や遠くの鳥のさえずりなど自然音を添えて。リズムはほぼなし。自由に流れるアンビエントで、脈拍のような拍感もほとんど感じさせない。低音域の温かみのあるハーモニーで、憂いを帯びた穏やかさを表現。音量はとても静かで、遠くから聴こえてくるような感覚。不協和音なし、緊張感なし、ひたすら耳に優しく。周波数は低〜中域（50〜400Hz）を中心に、高音域はほぼ消す。1/fゆらぎが強め（α≈1.2）で、有機的でゆったりとした自然な揺らぎを持たせる。深い休息と瞑想を感じさせる曲に。キーワード：ニューエイジ、ヒーリング、アンビエント、瞑想的、低周波、静寂、穏やか」
+**ほぼ全滅。**
 
-この時のペルソナは「疲れ切って無気力な看護師」です。
-テスト利用者で診断を行ない、その音響パラメータから自然言語へ転換しました。
-これを別の利用者さんのペルソナで9パターン作成しました。
+### 2-3. なぜ反映されないか
 
-### 2-2. 音楽分析ツール作成
-
-果たして本当に、音響効果を反映できているのか。
-自然言語にしてかなり曖昧になってしまった部分は仕方がないとしても、数値を与えているパラメータは反映されていてほしい、、、
-
-mp3を取り込んで平均値で音楽パラメータを算出できるツールをPythonで作ってもらいました。
-
-まとめの表には基本の実測値とプロンプトと合っているのか ❌ or ✅ が表示されます。
-
-### 2-3. 分析結果
-
-| ID | ファイル名 | 長さ | テンポ | キー | ラウドネス | 1/fゆらぎ |
-|----|-----------|------|--------|------|-----------|-----------|
-| 1 | id_01.mp3 | 255.7s | 99.4 BPM ❌ | C major ❌ | -18.8 dB ❌ | ❌ |
-| 2 | id_02.mp3 | 183.7s | 136.0 BPM ❌ | D major ❌ | -18.7 dB ❌ | ❌ |
-| 3 | id_03_01.mp3 | 202.9s | 136.0 BPM ❌ | C major ❌ | -20.8 dB ✅ | ❌ |
-| 3 | id_03.mp3 | 189.4s | 117.5 BPM ❌ | F major ❌ | -20.4 dB ✅ | ❌ |
-| 4 | id_04.mp3 | 198.1s | 89.1 BPM ✅ | G major ❌ | -18.8 dB | ❌ |
-| 5 | id_05.mp3 | 199.8s | 112.3 BPM ❌ | G minor ❌ | -20.1 dB ❌ | ❌ |
-| 6 | id_06_01.mp3 | 176.1s | 112.3 BPM ✅ | A minor ❌ | -20.1 dB ❌ | ❌ |
-| 6 | id_06.mp3 | 170.4s | 112.3 BPM ✅ | E minor ❌ | -19.5 dB ❌ | ❌ |
-| 7 | id_07_01.mp3 | 196.2s | 172.3 BPM ❌ | F# minor ❌ | -19.2 dB ❌ | ❌ |
-| 7 | id_07.mp3 | 252.3s | 95.7 BPM ❌ | D minor ❌ | -18.8 dB ❌ | ❌ |
-| 8 | id_08_01.mp3 | 206.9s | 123.0 BPM | B minor ❌ | -19.6 dB ❌ | ❌ |
-| 8 | id_08.mp3 | 220.8s | 112.3 BPM ❌ | F minor ❌ | -19.9 dB ❌ | ❌ |
-| 9 | id_09.mp3 | 197.0s | 136.0 BPM ❌ | F# major ❌ | -17.6 dB ❌ | ❌ |
-
-**ほぼ反映されてなーい！**
-
-乾いた笑いが出ます、、。今まで私は何に時間を使ってきたんだ、、、、笑！！
-
-でも、ラファウもエジソンも言ってました。
-「不正解は無意味を意味しない」「失敗する何万通りもの方法を発見できただけだ」って。
-
-偉人かっこよすぎる。偉人すぎる。
-恥ずかしいくらい失敗した時は、いつでもこの言葉を思い出すようにしてます。
-
----
-
-## 3. Google Lyria RealTime APIで検証！するぞ
-
-### 3-0. 根本的な問題
-
-Murekaの結果を受けて、根本的な問題が見えてきました。
+MurekaのモデルはCLAPモデルをベースに構築されており、テキストと音楽の対応関係を学習する設計です。「80BPM」という数値ではなく「upbeat」「energetic」のような自然言語ラベルでトレーニングされている。数値を渡しても、モデルが「それっぽい音楽的解釈」に変換してしまうのは設計上必然でした。
 
 > **「自然言語プロンプトに依存するAPIでは、音響パラメータの制御は無理だ」**
 
-Murekaに限らず、SunoもUdioも同じ設計です。どれだけ丁寧に自然言語に変換しても、BPMはAIが「それっぽい」と判断した値で生成されてしまう。このアプリのコアは「診断した音響パラメータを正確に音楽に反映させること」なので、これは致命的でした。
-
-**必要なのは、テンポ・キー・密度を数値で直接渡せるAPIです。**
-
-そこで辿り着いたのが、Google DeepMindの **Lyria RealTime**。
-
-他のAPIとの決定的な違いは、テンポ・キー・音の密度・明るさ（スペクトル輝度）をAPIのパラメータとして直接指定できる点です。自然言語の変換を挟まない。数値は数値のまま渡せる。
-
-しかも現時点では無料。検証コストゼロです。
-
-「これだ」と思いました。
-
-### 3-1. 歌生成はどうなるのか
-
-たどり着いた答えはこう。**「歌はみんなに歌ってもらおう」**
-
-兼ねてから、音楽創造の「創造」の部分をどう表現したら良いか考えていました。
-利用者さんの状態診断から生成される音楽は創造とは言えない。
-このツールは能動的音楽療法の枠組みの中に入れたい。
-
-かつ、アクティブレストや大人の塗り絵のような、基本の枠組みがあることで少ない負荷で、自由度のあるものづくりをしてもらいたいと思っていました。
-
-伴奏生成後、カラオケのように歌を入れられるフェーズを追加しようと思います。
+Mureka・Suno・Udioは同じ設計です。どれだけ丁寧に自然言語に変換しても、BPMはAIが「それっぽい」と判断した値で生成されてしまいます。
 
 ---
 
-## 4. Lyria RealTime APIで音響パラメータ反映ができるか
+## 3. Google Lyria RealTime APIを選んだ理由
 
-### 4-1. Lyria RealTime APIの組み込み方
+Google DeepMindが開発した音楽生成AIのAPI（2024年時点で実験的モデル・無料）。
 
-Claude Codeとチャットするだけでこれらの流れを自動で整えてくれます。
+他のAPIとの決定的な違い：
 
-**4-1-1. 必要なライブラリ**
+```python
+config = types.LiveMusicGenerationConfig(
+    bpm=90,                              # ← 数値で直接渡せる
+    scale=types.Scale.G_MAJOR_E_MINOR,  # ← キーも直接指定
+    density=0.5,                         # ← 音の密度 0.0〜1.0
+    brightness=0.5,                      # ← 高音域の明るさ 0.0〜1.0
+)
+```
+
+自然言語の変換なし。数値は数値のまま渡せます。
+
+| | Mureka | Lyria RealTime |
+|---|---|---|
+| パラメータ指定方式 | 自然言語 | 数値直接指定 |
+| BPM制御 | ほぼ不可 | 62% |
+| 料金 | 有料（$30〜） | 無料（実験的） |
+| 通信方式 | REST | WebSocket |
+
+---
+
+## 4. Python実装
+
+### 4-1. APIキーの準備
+
+LyriaはGemini APIの実験的モデルとして提供されているので、[Google AI Studio](https://aistudio.google.com) から取得します。Gemini・Imagen・Lyria、1キーで全部使えます。
+
+```
+# music-analyzer/.env
+GOOGLE_API_KEY=your_api_key_here
+```
+
+```bash
+# .gitignore に追加（GitHubにキーを上げないため）
+music-analyzer/.env
+```
+
+```python
+from dotenv import load_dotenv
+import os
+
+load_dotenv()  # .env を読み込む
+API_KEY = os.environ.get("GOOGLE_API_KEY")
+```
+
+### 4-2. インストール
 
 ```bash
 pip install google-genai python-dotenv
+# google-genai  → Lyria/GeminiのPython SDK（公式）
+# python-dotenv → .envを読み込むライブラリ
 ```
 
-**4-1-2. 接続の仕組み**
-
-Lyria RealTimeはRESTではなくWebSocketで動きます。GoogleがLyria RealTime用に用意した公式ライブラリ（google-genai）があり、これを使うと接続まわりの複雑な処理を丸ごとお任せできます。
+### 4-3. APIの窓口を作る
 
 ```python
 from google import genai
 from google.genai import types
 
 client = genai.Client(
-    api_key="YOUR_GEMINI_API_KEY",
-    http_options={"api_version": "v1alpha"},  # ← 実験的モデル用に必須
+    api_key=API_KEY,
+    http_options={"api_version": "v1alpha"},  # 実験的モデル用に必須
 )
 ```
 
-**4-1-3. 音楽パラメータの指定**
+### 4-4. 音楽パラメータを数値で渡す
 
 ```python
-# BPM・スケール・密度・明るさを数値で直接指定
+# 音響パラメータ（数値で直接指定）
 config = types.LiveMusicGenerationConfig(
     bpm=90,
-    scale=types.Scale.G_MAJOR_E_MINOR,
-    density=0.5,    # 0.0〜1.0 音の密度
-    brightness=0.5, # 0.0〜1.0 高音域の明るさ
+    scale=types.Scale.G_MAJOR_E_MINOR,  # キー（平行調はセットで指定）
+    density=0.3,    # 0.0（スカスカ）〜1.0（ぎっしり）
+    brightness=0.5, # 0.0（こもった音）〜1.0（煌びやか）
 )
 
-# ジャンルはテキストプロンプトで指定（重みづけ可能）
+# ジャンル・雰囲気をテキストで補足
 prompts = [
     types.WeightedPrompt(text="Folk acoustic, warm, organic", weight=2.0),
     types.WeightedPrompt(text="No vocals, instrumental only", weight=1.5),
 ]
 ```
 
-### 4-2. Lyria RealTime APIで音楽生成
+### 4-5. 接続・送信・生成・受信
 
-Murekaのときと同じように、パラメータを指定 → 生成 → 音響分析ツールで実測値と比較しました。今回は8ケース。
+```python
+async with client.aio.live.music.connect(model="models/lyria-realtime-exp") as session:
+    await session.set_music_generation_config(config=config)  # パラメータ送信
+    await session.set_weighted_prompts(prompts=prompts)        # ジャンル送信
+    await session.play()                                       # 生成開始
 
-### 4-3. 分析結果
-
-合格率はこんな感じ。
-
-- **BPM：5/8（62%）** → 数字だけ見るとちょっと不安になるけど、実際にタップテンポで手動でBPMを測定するとほぼ合ってました。遅いBPMのケースはlibrosaの既知バグ（オクターブエラー）で、目標値を渡して探索範囲を絞ることで改善できそう。
-- **キー：2/8（20%）** → 完全一致は少ないけど、五度圏で1つ隣のキーに収まることが多かった。
-- **1/fゆらぎ：5/8（62%）** → ゆらぎが大きい（高エネルギーな）ほどα値が下がる傾向あり。
-
-Murekaと比べると、必要な音響パラメータが7割程度反映されている印象です。完璧に、ではないけどこのAPIで音楽生成するで良い感じがします。
-
-### 4-4. VOCALIZATIONモード搭載
-
-Lyria RealTimeにはVOCALIZATIONモードというものがあって、oohs/ahhs（ハミング）のメロディを乗せた音楽が生成できます。
-「伴奏だけでなく、ガイドボーカルとなる一緒に歌えるメロディも出るかも？」と思って試してみました。
-
-ここで重要な発見がありました。`density` パラメータです。
-
-```
-density 高い（1.0）→ 音がぎっしり、常に何かが鳴ってる
-　　　　　　　　　　　例：バンドのアンサンブル、オーケストラ
-
-density 低い（0.1）→ 音がスカスカ、余白が多い
-　　　　　　　　　　　例：ミニマルなアンビエント、一音一音が際立つ
+    async for message in session.receive():
+        # 2秒チャンク単位で音声データが届く（WebSocketで繋ぎっぱなし）
 ```
 
-- `density=0.5` → 伴奏が密すぎてメロディが出てこない
-- `density=0.3` → oohs/ahhsのメロディがふわっと浮き出た！
+**`async with ... as session:`** — 接続を開いてブロック終了時に自動切断。
 
-伴奏が密だとメロディの出る余地がなくなるんですね。当たり前といえば当たり前なんですが、数値でそれが確認できたのは大きかったです。ねぃろへの実装では `density` を低めに設定して、メロディレイヤーのスペースをちゃんと確保することが重要になりそうです。
+**`client.aio.live.music.connect(...)`** の読み方：
 
-### 4-5. Demucs v4で伴奏とメロディを分離する
+```
+client          # APIの窓口
+  .aio          # 非同期（async）モード
+  .live         # リアルタイム系のAPI
+  .music        # 音楽モジュール
+  .connect(...) # 接続する
+```
 
-VOCALIZATIONモードで生成した音楽を、伴奏とメロディに分離できないか試してみました。使ったのはFacebook Researchが開発したOSS音源分離ツール「Demucs v4（htdemucs）」。
+Pythonのブロック構造：
 
-**結果：**
-- `vocals.wav` → oohs/ahhsのメロディ層にきれいに分離 ✅
-- `no_vocals.wav` → 伴奏層に分離 ✅
+```python
+async with ... as session:  # ← ここから
+    await session.play()    # ← スペース4つ = ブロックの中
+# ← 行頭に戻ったらブロック終了・自動切断
+```
 
-精度は許容範囲で、ねぃろのユースケース（伴奏+メロディの2レイヤー制御）に十分使えそうです。これでユーザーが「伴奏だけ聴く」「メロディも一緒に鳴らす」を選べるようになります。
+---
 
-生成から分離までのフローが確立できました。
+## 5. 音響分析ツール（librosa）
+
+生成した音楽が本当にパラメータ通りか確認するために、Pythonで分析ツールを作りました。
+
+```python
+import librosa
+
+y, sr = librosa.load("song.mp3")
+# y  = 波形データ
+# sr = サンプルレート（1秒間に何回記録するか）
+# _  = 使わない戻り値は _ で受け取って捨てる
+
+tempo, _ = librosa.beat.beat_track(y=y, sr=sr)
+```
+
+### librosaの限界
+
+- **BPM検出：** 遅い音楽（60BPM以下）はビートを2倍で拾う「オクターブエラー」が起きやすい。`start_bpm` に目標値を渡すと改善できる
+- **キー検出：** 簡易なアルゴリズムのため完全一致は少ない。五度圏で1つ隣のキーに収まることが多く、聴感上の問題はほぼない
+
+---
+
+## 6. 検証結果と気づき
+
+### 6-1. Lyria RealTimeの合格率
+
+- **BPM：5/8（62%）** — 遅いBPMはlibrosaのオクターブエラー。手動タップテンポで確認するとほぼ合っていた
+- **キー：2/8（25%）** — 完全一致は少ないが五度圏1つ隣が多数。聴感上の問題なし
+- **1/fゆらぎ：5/8（62%）** — ゆらぎが大きいほどα値が下がる傾向あり
+
+### 6-2. densityの発見
+
+```
+density=1.0 → 音がぎっしり（バンドアンサンブル、オーケストラ）
+density=0.3 → 音がスカスカ（ミニマルアンビエント、一音一音が際立つ）
+```
+
+VOCALIZATIONモード（oohs/ahhsのハミング）を試したところ、`density=0.5` では伴奏が密すぎてメロディが出てこなかった。`density=0.3` にするとハミングメロディがふわっと浮き出ました。
+
+伴奏が密だとメロディの出る余地がなくなる——数値で確認できたことが大きかったです。
+
+### 6-3. Demucs v4で伴奏とメロディを分離
+
+VOCALIZATIONモードで生成した音楽をFacebook ResearchのOSS「Demucs v4（htdemucs）」で分離。
+
+- `vocals.wav` → oohs/ahhsのメロディ層 ✅
+- `no_vocals.wav` → 伴奏層 ✅
 
 ```
 Lyria RealTime API（VOCALIZATIONモード）
-　↓ 生成
+  ↓ 生成
 Demucs v4（htdemucs）
-　↓ 分離
+  ↓ 分離
 vocals.wav（メロディ層）+ no_vocals.wav（伴奏層）
 ```
 
 ---
 
-## 5. まとめ
+## 7. まとめ
 
-### 5-1. 今回の学び
+### 暗記してサッと使いたいLyria RealTime APIコード
 
-**音楽生成APIの選定**
-- ✅ 自然言語プロンプト依存のAPIでは音響パラメータ制御は無理
-- ✅ Lyria RealTimeはBPM・スケール・density・brightnessを数値で直接指定できる
-- ✅ 現時点では無料（実験的モデル）で検証コストゼロ
+```python
+# APIキーの読み込み
+from dotenv import load_dotenv
+import os
+load_dotenv()
+API_KEY = os.environ.get("GOOGLE_API_KEY")
 
-**Lyria RealTimeの仕組み**
-- ✅ RESTではなくWebSocketストリーミングで動作
-- ✅ google-genai SDKがWebSocket接続を管理してくれる
-- ✅ 2秒チャンク単位でPCMデータが届き続ける
+# APIの窓口
+from google import genai
+from google.genai import types
+client = genai.Client(
+    api_key=API_KEY,
+    http_options={"api_version": "v1alpha"},
+)
 
-**VOCALIZATIONモードとdensity**
-- ✅ densityは「音の密度＝音符の詰まり具合」
-- ✅ densityを低め（0.3程度）にするとハミングメロディが浮き出る
-- ✅ 伴奏が密だとメロディの出る余地がなくなる
+# 音響パラメータ
+config = types.LiveMusicGenerationConfig(
+    bpm=90,
+    scale=types.Scale.G_MAJOR_E_MINOR,
+    density=0.3,
+    brightness=0.5,
+)
 
-**音源分離**
-- ✅ Demucs v4で `vocals.wav`（メロディ層）と `no_vocals.wav`（伴奏層）に分離できる
-- ✅ 生成→分離のフローが確立できた
+# ジャンル
+prompts = [
+    types.WeightedPrompt(text="Folk acoustic, warm, organic", weight=2.0),
+]
 
-### 5-2. つまずきポイントと解決法
+# 接続・送信・受信
+async with client.aio.live.music.connect(model="models/lyria-realtime-exp") as session:
+    await session.set_music_generation_config(config=config)
+    await session.set_weighted_prompts(prompts=prompts)
+    await session.play()
+    async for message in session.receive():
+        pass  # 音声データを処理する
 
-**つまづきポイント1：Prompt DJが日本からアクセスできない**
-- 原因：Google AI StudioのPrompt DJはUS限定
-- 解決：APIキーだけ取得してコードから直接叩く → UI上で触れなくてもAPIは使える
+# 音響分析
+import librosa
+y, sr = librosa.load("song.mp3")
+tempo, _ = librosa.beat.beat_track(y=y, sr=sr)
+```
 
-**つまづきポイント2：遅いBPMの検出がズレる**
-- 原因：librosaの既知バグ（オクターブエラー）。遅い音楽はリズムが曖昧でビートを2倍で拾ってしまう
-- 解決：`start_bpm` に目標値を渡して探索範囲を絞る
+### 変更できる変数名・変更できないメソッド名
 
-**つまづきポイント3：キーが一致しない**
-- 原因：librosaのキー検出アルゴリズムが簡易（最も強いクロマ音を見るだけ）
-- 実態：完全一致は少ないが、五度圏で1つ隣のキーに収まることが多く聴感上の違和感はほぼなし
+**変更できない（ライブラリが決めている）：**
 
-音楽生成AIの検証3つ目でようやくアプリのコアを形作るAPIが決まりました！
+```python
+genai.Client() / types.LiveMusicGenerationConfig()
+bpm= / scale= / density= / brightness=
+types.Scale.G_MAJOR_E_MINOR
+types.WeightedPrompt() / text= / weight=
+.aio.live.music.connect() / model=
+.set_music_generation_config() / .set_weighted_prompts()
+.play() / .receive()
+```
 
-### 5-3. 次回の挑戦は、、？
+**変更できる（自分で付けた名前）：**
 
-実際の音楽創造アプリ：ねぃろ（Neiro）への組み込みに入ります！
+```python
+client / config / prompts / session / API_KEY
+```
 
-まずは診断フェーズのUI実装から。
+---
 
-1. ユーザーが今の気分・エネルギーを選択
-2. タップテンポでBPMを入力
-3. その結果をLyria RealTime APIへのパラメータに変換して音楽を生成
+## 参考
 
-実際に使えるMVPに一歩近づきます。次回、**ねぃろ 診断フェーズ実装編！** お楽しみに！
+- [Google Lyria RealTime APIドキュメント](https://ai.google.dev/gemini-api/docs/realtime-music-generation)
+- [Mureka API公式ドキュメント](https://platform.mureka.ai/docs/api/operations/post-v1-song-generate.html)
+- [librosa公式](https://librosa.org/)
+- [Demucs v4](https://github.com/facebookresearch/demucs)
