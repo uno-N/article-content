@@ -1,3 +1,10 @@
+---
+title: "【開発日記：#4】音楽生成API選定——MurekaAI失敗からGoogle Lyria RealTimeへ"
+emoji: "🎶"
+type: "tech"
+topics: ["api", "react", "音楽", "個人開発", "初心者"]
+published: true
+---
 
 みなさんこんにちは。
 平凡な訪問看護師が、アプリ開発の実装過程を掲載していく、「アプリ開発日記Vol.4」です。

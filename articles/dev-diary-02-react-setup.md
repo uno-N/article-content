@@ -1,4 +1,10 @@
-
+---
+title: "【開発日記：#2】React環境構築——Node.js・Viteの役割を整理して、最初のアプリを動かした"
+emoji: "⚙️"
+type: "tech"
+topics: ["react", "vite", "nodejs", "個人開発", "初心者"]
+published: true
+---
 
 みなさんこんにちは。
 平凡な訪問看護師が、アプリ開発の実装過程を掲載していく、「アプリ開発日記Vol.2」です。

@@ -1,3 +1,11 @@
+---
+title: "【開発日記：#5】診断フェーズUI実装——DESIGN.mdとViteで3スタイルを試した話"
+emoji: "🎨"
+type: "tech"
+topics: ["react", "vite", "ui", "個人開発", "claudecode"]
+published: true
+---
+
 みなさんこんにちは。
 平凡な訪問看護師が、アプリ開発の実装過程を掲載していく、「アプリ開発日記Vol.5」です。
 失敗や成功を繰り返していく過程をお楽しみください。
