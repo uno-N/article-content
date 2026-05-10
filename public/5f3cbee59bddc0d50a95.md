@@ -1,5 +1,5 @@
 ---
-title: 【小脳記憶 ser.6】CRA非推奨→Vite移行 + DESIGN.mdでAIに一貫したUIを作らせる方法
+title: 【小脳記憶 ser.5】CRA非推奨→Vite移行 + DESIGN.mdでAIに一貫したUIを作らせる方法
 tags:
   - CSS
   - React
@@ -7,8 +7,8 @@ tags:
   - vite
   - ClaudeCode
 private: false
-updated_at: '2026-05-10T14:42:44+09:00'
-id: 666213e024ea71ab1787
+updated_at: '2026-05-10T14:19:01+09:00'
+id: 5f3cbee59bddc0d50a95
 organization_url_name: null
 slide: false
 ignorePublish: false

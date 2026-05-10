@@ -2,13 +2,13 @@
 title: 医療アプリのセキュリティ設計——「クラウドかオンプレか」より先に考えること
 tags:
   - Security
-  - Supabase
   - React
   - 個人開発
   - 医療
+  - Supabase
 private: false
-updated_at: '2026-05-10T00:00:00+09:00'
-id: ''
+updated_at: '2026-05-10T14:42:44+09:00'
+id: 52aee5edc38a7c2ee89a
 organization_url_name: null
 slide: false
 ignorePublish: false
