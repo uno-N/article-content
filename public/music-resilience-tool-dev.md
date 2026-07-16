@@ -9,6 +9,8 @@ id: 583161adac5e0276c4b7
 organization_url_name: null
 slide: false
 ignorePublish: false
+posting_campaign_uuid: null
+agreed_posting_campaign_term: false
 ---
 # 0. 道のり：レジリエンス(回復力)を高めるツールを作りたい
 
