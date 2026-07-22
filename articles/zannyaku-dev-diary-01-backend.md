@@ -3,7 +3,7 @@ title: "【残薬アプリ開発日記：#1】「それ、バックエンド作�
 emoji: "💊"
 type: "tech"
 topics: ["個人開発", "hono", "vercel", "supabase", "初心者"]
-published: false
+published: true
 ---
 
 平凡な訪問看護師が、残薬管理アプリ「のこり」を作っている開発日記です。
@@ -427,7 +427,7 @@ GRANT ALL ON ALL SEQUENCES IN SCHEMA public TO service_role;
 
 今日はここまで。
 
-次回は、登録・ログアウト・セッション管理の実装について書きます。
+次回は、自分の実装を自分で監査したら穴が見つかった話——RLSポリシーの不備と、サーバーレス特有のレート制限の罠について書きます。
 
 ---
 
