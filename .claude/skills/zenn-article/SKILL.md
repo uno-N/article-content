@@ -90,4 +90,4 @@ published: false
 ## 公開設定
 
 - [ ] `published: true` に変更してpushしたか？
-- [ ] Xでシェアしたか？
+- [ ] X・Threads誘導投稿を作ったか？（→ `sns-promo-post` スキル参照）
