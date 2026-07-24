@@ -3,7 +3,7 @@ title: "【残薬アプリ開発日記：#2】自分の実装を自分で監査�
 emoji: "💊"
 type: "tech"
 topics: ["個人開発", "supabase", "postgresql", "security"]
-published: false
+published: true
 ---
 
 前回、504エラーとの3週間の話を書きました。バックエンドを作り、ログインが通るようになって、「よし、これで一区切り」と思っていました。
