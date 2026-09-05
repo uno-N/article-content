@@ -1,9 +1,6 @@
 {
   "permissions": {
     "allow": [
-      "Bash(git -C /Users/nakagawayuno/Desktop/content-therapy-reference/zenn-content add note/drafts/project-plan.md)",
-      "Bash(git -C /Users/nakagawayuno/Desktop/content-therapy-reference/zenn-content commit -m \"Add content strategy project plan\")",
-      "Bash(git -C /Users/nakagawayuno/Desktop/content-therapy-reference/zenn-content push origin main)",
       "mcp__claude_ai_Notion__notion-fetch",
       "mcp__claude_ai_Notion__notion-create-pages"
     ]

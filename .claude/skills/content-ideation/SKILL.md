@@ -29,12 +29,12 @@ description: 記事企画がないときに、既存コンテンツ全体とプ�
 
 「最近やったこと」の中に、まだ記事化されていない実装・気づき・トラブルがないかを確認する。
 
-1. `/Users/nakagawayuno/Desktop/brain/06-dashboard/tasks.md` の直近2週間分の `[x]` 完了タスクを、ねぃろ・てあて・残薬アプリのカテゴリで確認する
+1. `/Users/nakagawayuno/dev/brain/06-dashboard/tasks.md` の直近2週間分の `[x]` 完了タスクを、ねぃろ・てあて・残薬アプリのカテゴリで確認する
 2. 各プロダクトリポジトリの直近コミットを確認する：
    ```
-   cd /Users/nakagawayuno/Desktop/zannyaku-api && git log --oneline -15
-   cd /Users/nakagawayuno/Desktop/zannyaku-app && git log --oneline -15
-   cd /Users/nakagawayuno/Desktop/neiro-app && git log --oneline -15
+   cd /Users/nakagawayuno/dev/zannyaku-api && git log --oneline -15
+   cd /Users/nakagawayuno/dev/zannyaku-app && git log --oneline -15
+   cd /Users/nakagawayuno/dev/neiro-app && git log --oneline -15
    ```
 3. コミットメッセージや`docs/`配下の調査記録（例：`login-timeout-investigation.md`のような一次資料）から、「実際に困って解決した」ネタを探す。これが一番刺さる開発日記になりやすい（実例：zannyaku-dev-diary-02はSECURITY_CHECKLIST.mdとmigrationファイルの精査から生まれた）
 
