@@ -11,7 +11,7 @@ GitHub: https://github.com/uno-N/article-content（`main`ブランチにpushす�
 | **Zenn** | `articles/*.md` | 自動（pushだけで反映） | Zenn公式のGitHub連携。`published: true`にしてこのリポジトリを`main`にpushすれば、Zenn側が自動で取り込む。ワークフローファイルは不要（Zenn側の仕組みなのでこのリポジトリには何も置いていない） |
 | **Qiita** | `public/*.md` | 自動（pushだけで反映） | `.github/workflows/publish.yml`。`main`/`master`へのpushをトリガーに、`increments/qiita-cli/actions/publish@v1`が`public/`配下を読んでQiita APIに投稿する。GitHub Secretsに`QIITA_TOKEN`が必要（設定済み前提・失効していないか一度確認推奨） |
 | **note** | `note/drafts/*.md` | 半自動（下書き保存までは自動・公開は手動） | `scripts/note-post/post.js`。Playwrightでnote.comにログインし、`note/notes/new`を開いてタイトル・本文を流し込み、下書き保存まで自動で行う。**公開ボタンは押さない**（意図的に手動に残してある）。使い方：`cd scripts/note-post && node post.js ../../note/drafts/ファイル名.md`。ログイン情報は`scripts/note-post/.env`（gitignore済み・`NOTE_EMAIL`/`NOTE_PASSWORD`） |
-| **Substack** | `substack/drafts/*.md` | 手動 | 自動化の仕組みなし。Substackのエディタに手でコピペしている |
+| **Substack** | `substack/drafts/*.md` | 手動（自動化はnote方式で実装予定・未着手） | 公式APIは読み取り専用（投稿不可）、公式のメール投稿機能もなし。noteと同じ方式（Playwrightでログイン→下書き保存、公開は手動）を採用する方針だが、スクリプトはまだ実装していない |
 
 ## フォルダ構成の補足
 
@@ -36,5 +36,5 @@ GitHub: https://github.com/uno-N/article-content（`main`ブランチにpushす�
 
 - `package.json`の`repository.url`が`zenn-content`のままになっている（GitHub上は`article-content`にリポジトリ名変更済み）。GitHubはリダイレクトするので実害はなさそうだが、Zenn側の連携設定がどちらの名前を見ているかは未確認
 - QIITA_TOKENの有効期限・現在の設定値は未確認（Qiita自動投稿が急に止まったら、まずここを疑う）
-- Substackの自動化は未着手。API・メール投稿など手段があるかは`~/dev/brain/06-dashboard/tasks.md`の「Substackも自動投稿できないか調査する」タスクで別途調査予定
+- Substack自動化：調査完了（2026/09/21）。公式API・メール投稿とも投稿手段なし。noteと同じPlaywright方式を採用予定だが、スクリプト実装はこれから（`~/dev/brain/06-dashboard/tasks.md`にタスクあり）
 - note公開の自動化（下書き→公開ボタンまで）は意図的に手動のまま。誤爆防止のためだが、信頼できるようになれば自動化を検討してもよい
