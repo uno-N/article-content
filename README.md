@@ -36,5 +36,5 @@ GitHub: https://github.com/uno-N/article-content（`main`ブランチにpushす�
 
 - `package.json`の`repository.url`が`zenn-content`のままになっている（GitHub上は`article-content`にリポジトリ名変更済み）。GitHubはリダイレクトするので実害はなさそうだが、Zenn側の連携設定がどちらの名前を見ているかは未確認
 - QIITA_TOKENの有効期限・現在の設定値は未確認（Qiita自動投稿が急に止まったら、まずここを疑う）
-- Substack自動化：調査完了（2026/09/21）。公式API・メール投稿とも投稿手段なし。Substack は休止中のため、自動化も保留（再開したら note と同じ Playwright 方式で作る）
+- Substack自動化：調査完了（2026/09/21）。公式API・メール投稿とも投稿手段なし。自動化は保留中（作るなら note と同じ Playwright 方式）
 - note公開の自動化（下書き→公開ボタンまで）は意図的に手動のまま。誤爆防止のためだが、信頼できるようになれば自動化を検討してもよい
