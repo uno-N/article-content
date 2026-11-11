@@ -1,1 +1,4 @@
 node_modules/
+
+# Claude Code の個人設定（許可したコマンドが平文で残るので上げない）
+.claude/settings.local.json
