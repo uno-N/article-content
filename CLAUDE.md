@@ -4,8 +4,11 @@
 
 **記事・投稿を書く前に、必ず `~/dev/auto-post/content/voice.md`（文体・禁止事項・X 投稿ルールの正本）を Read する。**
 
+**参照先**：フォルダと媒体の対応・出し方は `README.md`
+
 ## 決まり
 
+- **main への push は、Zenn（`articles/`・`books/`）と Qiita（`public/`）に自動で公開される。記事が入る push は Yuno の OK をもらってから**
 - note の下書きは `note/drafts/` に保存する
 - 患者情報・個人情報を AI に入力しているように読める書き方をしない（voice.md の禁止事項）
 - 記事はタスクにしない（書きたくなったときに書く）
